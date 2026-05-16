@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-700;
+  }
+  
+  body {
+    @apply bg-dark-950 text-dark-100;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-dark-900 border border-dark-800 rounded-xl p-6 shadow-lg;
+  }
+  
+  .card-hover {
+    @apply card transition-all duration-200 hover:border-primary-500/50 hover:shadow-primary-500/10;
+  }
+  
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-dark-800 hover:bg-dark-700 text-dark-100 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 border border-dark-700;
+  }
+  
+  .btn-danger {
+    @apply px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-dark-300 mb-1;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-green {
+    @apply badge bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+  
+  .badge-yellow {
+    @apply badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+  
+  .badge-red {
+    @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+  
+  .badge-blue {
+    @apply badge bg-primary-500/20 text-primary-400 border border-primary-500/30;
+  }
+  
+  .badge-purple {
+    @apply badge bg-purple-500/20 text-purple-400 border border-purple-500/30;
+  }
+  
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 text-dark-400 hover:text-dark-100 hover:bg-dark-800/50 rounded-lg transition-all duration-200 cursor-pointer;
+  }
+  
+  .nav-item.active {
+    @apply text-primary-400 bg-primary-500/10 border-r-2 border-primary-500;
+  }
+  
+  .stat-card {
+    @apply card-hover relative overflow-hidden;
+  }
+  
+  .stat-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent pointer-events-none;
+  }
+  
+  .org-node {
+    @apply relative bg-dark-800 border border-dark-700 rounded-lg p-4 min-w-[200px] transition-all duration-200;
+  }
+  
+  .org-node:hover {
+    @apply border-primary-500/50 shadow-lg shadow-primary-500/10;
+  }
+  
+  .org-connector {
+    @apply absolute w-px bg-dark-600;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.dark.700') theme('colors.dark.800');
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-dark-800 rounded;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-dark-700 rounded;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-600;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}

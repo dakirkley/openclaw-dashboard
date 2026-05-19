@@ -161,6 +161,36 @@ class ApiClient {
   async deleteMemoryBank(id: string): Promise<any> {
     return this.request('DELETE', `/memory_banks/${id}`);
   }
+
+  // Machines
+  async getMachines(): Promise<any> {
+    return this.request('GET', '/machines');
+  }
+
+  async getMachine(id: string): Promise<any> {
+    return this.request('GET', `/machines/${id}`);
+  }
+
+  async createMachine(machine: any): Promise<any> {
+    return this.request('POST', '/machines', machine);
+  }
+
+  async updateMachine(id: string, updates: any): Promise<any> {
+    return this.request('PUT', `/machines/${id}`, updates);
+  }
+
+  async deleteMachine(id: string): Promise<any> {
+    return this.request('DELETE', `/machines/${id}`);
+  }
+
+  // Machine Skills
+  async getMachineSkills(machineId: string): Promise<any> {
+    return this.request('GET', `/machines/${machineId}/skills`);
+  }
+
+  async updateMachineSkills(machineId: string, skills: any[]): Promise<any> {
+    return this.request('PUT', `/machines/${machineId}/skills`, { skills });
+  }
 }
 
 export const apiClient = new ApiClient();

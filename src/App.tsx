@@ -7,6 +7,7 @@ import { SettingsView } from './components/SettingsView';
 import { ActivityLog } from './components/ActivityLog';
 import { TaskList } from './components/TaskList';
 import { MemoryBankList } from './components/MemoryBankList';
+import { MachinesView } from './components/MachinesView';
 import { useDashboardData } from './hooks/useDashboardData';
 import type { View, BusinessData } from './types';
 import * as Icons from './components/icons';
@@ -166,6 +167,8 @@ function App() {
             businessId={selectedBusiness?.business.id}
           />
         );
+      case 'machines':
+        return <MachinesView />;
       case 'settings':
         return (
           <SettingsView 

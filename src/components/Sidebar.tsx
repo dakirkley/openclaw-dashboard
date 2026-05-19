@@ -14,6 +14,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Icons.LayoutDashboard },
   { id: 'businesses', label: 'Businesses', icon: Icons.Building2 },
+  { id: 'machines', label: 'Machines', icon: Icons.Server },
   { id: 'tasks', label: 'Tasks', icon: Icons.CheckSquare },
   { id: 'activity-log', label: 'Activity Log', icon: Icons.History },
   { id: 'memory-bank', label: 'Memory Bank', icon: Icons.Book },

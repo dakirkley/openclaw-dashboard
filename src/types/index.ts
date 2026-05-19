@@ -119,7 +119,19 @@ export interface MemoryBank {
   createdAt: string;
 }
 
-export type View = 'dashboard' | 'businesses' | 'business-detail' | 'settings' | 'activity-log' | 'tasks' | 'memory-bank' | 'memory-bank-detail';
+export interface Machine {
+  id: string;
+  name: string;
+  nodeId: string;
+  version: string;
+  platform: string;
+  skills: Skill[];
+  lastSyncAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type View = 'dashboard' | 'businesses' | 'business-detail' | 'machines' | 'settings' | 'activity-log' | 'tasks' | 'memory-bank' | 'memory-bank-detail';
 
 export const BUSINESS_COLORS = [
   { name: 'Blue', value: '#0ea5e9' },

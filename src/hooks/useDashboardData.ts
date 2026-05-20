@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabase';
-import type { DashboardData, Business, Bot, SubAgent, Skill, ApiConfig, Activity, Task, MemoryBank } from '../types';
+import { apiClient } from '../services/apiClient';
+import type { DashboardData, Business, Bot, SubAgent, Skill, ApiConfig, Activity, Task, MemoryBank, Machine } from '../types';
 
 export function useDashboardData() {
   const [data, setData] = useState<DashboardData>({ businesses: [], apiKeys: [], tasks: [], activities: [], memoryBanks: [] });
+  const [machines, setMachines] = useState<Machine[]>([]);
+  const [machineSkills, setMachineSkills] = useState<Record<string, Skill[]>>({});
   const [memoryBanks, setMemoryBanks] = useState<MemoryBank[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -123,6 +126,29 @@ export function useDashboardData() {
 
         if (activitiesError) {
           console.warn('Activity log table may not exist yet:', activitiesError);
+        }
+
+        // Load machines from API
+        let machinesData: Machine[] = [];
+        try {
+          const machinesRes = await apiClient.getMachines();
+          if (machinesRes.success) {
+            machinesData = machinesRes.data?.map((m: any) => ({
+              id: m.id,
+              name: m.hostname || m.name || 'Unknown Machine',
+              nodeId: m.id,
+              version: m.version || '',
+              platform: m.platform || '',
+              businessId: m.business_id,
+              businessName: m.business_name,
+              lastSyncAt: m.last_seen_at,
+              createdAt: m.created_at,
+              updatedAt: m.updated_at
+            })) || [];
+            setMachines(machinesData);
+          }
+        } catch (err) {
+          console.warn('Failed to load machines from API:', err);
         }
 
         setData({
@@ -1034,8 +1060,35 @@ export function useDashboardData() {
     }
   }, []);
 
+  // Fetch skills for a specific machine
+  const fetchMachineSkills = useCallback(async (machineId: string) => {
+    try {
+      const res = await apiClient.getMachineSkills(machineId);
+      if (res.success) {
+        const skills = res.data?.map((s: any) => ({
+          id: s.id,
+          name: s.skill_name,
+          version: s.skill_version,
+          description: '',
+          commands: [],
+          category: 'Other',
+          installedAt: s.updated_at,
+          usedByBots: []
+        })) || [];
+        setMachineSkills(prev => ({ ...prev, [machineId]: skills }));
+        return skills;
+      }
+      return [];
+    } catch (err) {
+      console.error('Failed to fetch machine skills:', err);
+      return [];
+    }
+  }, []);
+
   return {
     data,
+    machines,
+    machineSkills,
     memoryBanks,
     activities,
     stats,
@@ -1069,5 +1122,6 @@ export function useDashboardData() {
     importData,
     logActivity,
     loadActivities,
+    fetchMachineSkills,
   };
 }

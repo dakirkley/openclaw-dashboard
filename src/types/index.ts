@@ -125,6 +125,8 @@ export interface Machine {
   nodeId: string;
   version: string;
   platform: string;
+  businessId?: string;
+  businessName?: string;
   skills: Skill[];
   lastSyncAt?: string;
   createdAt: string;

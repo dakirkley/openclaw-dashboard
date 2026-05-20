@@ -1,43 +1,40 @@
 import { useState, useEffect } from 'react';
-import { useApiData } from '../hooks/useApiData';
+import { useDashboardData } from '../hooks/useDashboardData';
 import { Server, RefreshCw, Wrench, ChevronDown, ChevronRight, Cpu, Layers } from 'lucide-react';
 import type { Skill } from '../types';
 
 export function MachinesView() {
-  const { machines, isLoaded, error, refreshMachines, getMachineSkills } = useApiData();
+  const { machines, machineSkills, isLoaded, error, fetchMachineSkills } = useDashboardData();
   const [expandedMachine, setExpandedMachine] = useState<string | null>(null);
-  const [machineSkills, setMachineSkills] = useState<Record<string, Skill[]>>({});
+  const [localMachineSkills, setLocalMachineSkills] = useState<Record<string, Skill[]>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    if (expandedMachine) {
+    if (expandedMachine && !localMachineSkills[expandedMachine] && !machineSkills[expandedMachine]) {
       loadMachineSkills(expandedMachine);
     }
   }, [expandedMachine]);
 
   const loadMachineSkills = async (machineId: string) => {
-    if (machineSkills[machineId]) return;
-    
     try {
-      const skills = await getMachineSkills(machineId);
-      setMachineSkills(prev => ({ ...prev, [machineId]: skills }));
+      const skills = await fetchMachineSkills(machineId);
+      setLocalMachineSkills(prev => ({ ...prev, [machineId]: skills }));
     } catch (err) {
       console.error('Failed to load skills:', err);
     }
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setIsRefreshing(true);
-    try {
-      await refreshMachines();
-      setMachineSkills({}); // Clear cached skills
-    } finally {
-      setIsRefreshing(false);
-    }
+    window.location.reload();
   };
 
   const toggleMachine = (machineId: string) => {
     setExpandedMachine(expandedMachine === machineId ? null : machineId);
+  };
+
+  const getSkillsForMachine = (machineId: string): Skill[] => {
+    return localMachineSkills[machineId] || machineSkills[machineId] || [];
   };
 
   if (!isLoaded) {
@@ -91,103 +88,103 @@ export function MachinesView() {
         </div>
       ) : (
         <div className="space-y-4">
-          {machines.map((machine) => (
-            <div
-              key={machine.id}
-              className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden"
-            >
-              <button
-                onClick={() => toggleMachine(machine.id)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors"
+          {machines.map((machine) => {
+            const skills = getSkillsForMachine(machine.id);
+            return (
+              <div
+                key={machine.id}
+                className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden"
               >
-                <div className="flex items-center gap-3">
-                  {expandedMachine === machine.id ? (
-                    <ChevronDown className="w-5 h-5 text-slate-400" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5 text-slate-400" />
-                  )}
-                  <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                    <Cpu className="w-5 h-5 text-cyan-400" />
+                <button
+                  onClick={() => toggleMachine(machine.id)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {expandedMachine === machine.id ? (
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-slate-400" />
+                    )}
+                    <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                      <Cpu className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-medium text-white">{machine.name}</h3>
+                      <p className="text-sm text-slate-400">{machine.nodeId}</p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <h3 className="font-medium text-white">{machine.name}</h3>
-                    <p className="text-sm text-slate-400">{machine.nodeId}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Layers className="w-4 h-4" />
+                      <span>{skills.length} skills</span>
+                    </div>
+                    <span className="text-xs text-slate-500">
+                      {machine.lastSyncAt ? new Date(machine.lastSyncAt).toLocaleDateString() : 'Never synced'}
+                    </span>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Layers className="w-4 h-4" />
-                    <span>{machine.skills?.length || 0} skills</span>
-                  </div>
-                  <span className="text-xs text-slate-500">
-                    {machine.lastSyncAt ? new Date(machine.lastSyncAt).toLocaleDateString() : 'Never synced'}
-                  </span>
-                </div>
-              </button>
+                </button>
 
-              {expandedMachine === machine.id && (
-                <div className="border-t border-slate-700 p-4">
-                  <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Version:</span>
-                      <span className="text-slate-300 ml-2">{machine.version || 'Unknown'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Platform:</span>
-                      <span className="text-slate-300 ml-2">{machine.platform || 'Unknown'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Created:</span>
-                      <span className="text-slate-300 ml-2">
-                        {new Date(machine.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Last Updated:</span>
-                      <span className="text-slate-300 ml-2">
-                        {new Date(machine.updatedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-cyan-400" />
-                    Skills ({machineSkills[machine.id]?.length || machine.skills?.length || 0})
-                  </h4>
-
-                  {machineSkills[machine.id] ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {machineSkills[machine.id].map((skill) => (
-                        <div
-                          key={skill.id}
-                          className="bg-slate-900/50 rounded-lg p-3 border border-slate-700"
-                        >
-                          <div className="flex items-start justify-between">
-                            <h5 className="font-medium text-slate-200 text-sm">{skill.name}</h5>
-                            <span className="text-xs text-slate-500">{skill.version}</span>
-                          </div>
-                          {skill.description && (
-                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                              {skill.description}
-                            </p>
-                          )}
-                          {skill.category && (
-                            <span className="inline-block mt-2 text-xs px-2 py-0.5 bg-slate-700 rounded text-slate-400">
-                              {skill.category}
-                            </span>
-                          )}
+                {expandedMachine === machine.id && (
+                  <div className="border-t border-slate-700 p-4">
+                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                      <div>
+                        <span className="text-slate-500">Version:</span>
+                        <span className="text-slate-300 ml-2">{machine.version || 'Unknown'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Platform:</span>
+                        <span className="text-slate-300 ml-2">{machine.platform || 'Unknown'}</span>
+                      </div>
+                      {machine.businessName && (
+                        <div>
+                          <span className="text-slate-500">Business:</span>
+                          <span className="text-slate-300 ml-2">{machine.businessName}</span>
                         </div>
-                      ))}
+                      )}
+                      <div>
+                        <span className="text-slate-500">Last Seen:</span>
+                        <span className="text-slate-300 ml-2">
+                          {machine.lastSyncAt ? new Date(machine.lastSyncAt).toLocaleString() : 'Never'}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+
+                    <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                      <Wrench className="w-4 h-4 text-cyan-400" />
+                      Skills ({skills.length})
+                    </h4>
+
+                    {skills.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {skills.map((skill) => (
+                          <div
+                            key={skill.id}
+                            className="bg-slate-900/50 rounded-lg p-3 border border-slate-700"
+                          >
+                            <div className="flex items-start justify-between">
+                              <h5 className="font-medium text-slate-200 text-sm">{skill.name}</h5>
+                              {skill.version && skill.version !== 'unknown' && (
+                                <span className="text-xs text-slate-500">{skill.version}</span>
+                              )}
+                            </div>
+                            {skill.description && (
+                              <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                                {skill.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center py-8 text-slate-500">
+                        No skills synced yet
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
